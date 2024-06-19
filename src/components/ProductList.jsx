@@ -18,7 +18,7 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('api/products/');
+      const response = await axios.get('products/');
       const { data } = response;
       console.log('Fetched products:', data);
       if (!Array.isArray(data)) {
@@ -58,7 +58,7 @@ const ProductList = () => {
 
   const handleDelete = async (productId) => {
     try {
-      await axios.delete(`/api/products/${productId}`);
+      await axios.delete(`products/${productId}`);
       fetchProducts(); // Optionally, re-fetch products after deletion
     } catch (error) {
       console.error('Delete product error:', error);
