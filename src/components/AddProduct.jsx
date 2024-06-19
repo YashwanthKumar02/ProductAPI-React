@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import axios from '../api/axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,13 +6,19 @@ const AddProduct = () => {
   const [formData, setFormData] = useState({ productId:'', name: '', price: 0, featured: false, rating: 0, company: '' });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+
+    if (e.target.name === 'rating') {
+      value = Math.min(Math.max(parseFloat(value), 0), 5);
+    }
+
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const productId = uuidv4();
+      const productId = uuidv4();
       await axios.post('/products', { ...formData, productId });
       alert('Product added successfully');
       setFormData({ productId: '', name: '', price: 0, featured: false, rating: 0, company: '' });
@@ -40,7 +45,7 @@ const AddProduct = () => {
         </div>
         <div>
           <label>Rating:</label>
-          <input className='text-black' type="number" name="rating" value={formData.rating} onChange={handleChange} step="0.1" />
+          <input className='text-black' type="number" name="rating" value={formData.rating} onChange={handleChange} step="0.1" min="0" max="5" />
         </div>
         <div>
           <label>Company:</label>
