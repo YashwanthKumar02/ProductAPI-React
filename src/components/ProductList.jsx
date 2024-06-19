@@ -1,50 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
-import { Link } from 'react-router-dom';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minRating, setMinRating] = useState('');
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    applyFilters();
+  }, [products, featuredOnly, maxPrice, minRating]);
+
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/products');
-      const productsData = response.data.map(product => ({
+      const response = await axios.get('api/products/');
+      const { data } = response;
+      console.log('Fetched products:', data);
+      if (!Array.isArray(data)) {
+        throw new Error(`Expected array data, but received: ${JSON.stringify(data)}`);
+      }
+
+      const processedProducts = data.map(product => ({
         ...product,
-        price: typeof product.price === 'object' && product.price.$numberDecimal
-          ? parseFloat(product.price.$numberDecimal)
-          : product.price,
+        price: parseFloat(product.price), // Assuming price is already a number
+        rating: parseFloat(product.rating.$numberDecimal) // Convert Decimal128 to number
       }));
-      setProducts(productsData);
+
+      setProducts(processedProducts);
     } catch (error) {
-      console.error('Fetch products error:', error);
+      console.error('Fetch products error:', error.message);
+      // Handle error state or display an error message to the user
     }
+  };
+
+  const applyFilters = () => {
+    let filtered = products;
+
+    if (featuredOnly) {
+      filtered = filtered.filter(product => product.featured);
+    }
+
+    if (maxPrice !== '') {
+      filtered = filtered.filter(product => product.price <= parseFloat(maxPrice));
+    }
+
+    if (minRating !== '') {
+      filtered = filtered.filter(product => product.rating >= parseFloat(minRating));
+    }
+
+    setFilteredProducts(filtered);
   };
 
   const handleDelete = async (productId) => {
     try {
-      await axios.delete(`/products/${productId}`);
-      fetchProducts();
+      await axios.delete(`/api/products/${productId}`);
+      fetchProducts(); // Optionally, re-fetch products after deletion
     } catch (error) {
       console.error('Delete product error:', error);
+      // Handle delete error
     }
   };
 
   return (
     <div>
       <h2>All Products</h2>
+      
+      {/* Filter Controls */}
+      <div className='bg-gray-700 flex items-center justify-center gap-3 h-14 text-white'>
+      <div>
+        <label>
+          <input type="checkbox" checked={featuredOnly} onChange={() => setFeaturedOnly(!featuredOnly)} />
+          Featured Only
+        </label>
+      </div>
+      <div>
+        <label>
+          Max Price:
+          <input className="text-black" type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+        </label>
+      </div>
+      <div>
+        <label>
+          Min Rating:
+          <input className="text-black" type="number" step="0.1" value={minRating} onChange={(e) => setMinRating(e.target.value)} />
+        </label>
+      </div>
+      </div>
+
+      {/* Product List */}
       <ul>
-        {products.map((product) => (
-          <li key={product._id} className='p-3 border rounded mb-2'>
+        {filteredProducts.map((product) => (
+          <li key={product._id}>
             <div>Name: {product.name}</div>
-            <div>Price: ${product.price}</div>
+            <div>Price: ${product.price.toFixed(2)}</div>
             <div>Featured: {product.featured ? 'Yes' : 'No'}</div>
             <div>Rating: {product.rating}</div>
-            <button onClick={() => handleDelete(product._id)} className='bg-red-500 text-white p-1 rounded'>Delete</button>
-            <Link to={`/product/${product._id}/update`} className='text-blue-500'>Edit</Link>
+            <button onClick={() => handleDelete(product._id)} className='bg-black px-2 py-1 rounded-lg mb-2 text-white'>Delete</button>
+            <hr/>
           </li>
         ))}
       </ul>

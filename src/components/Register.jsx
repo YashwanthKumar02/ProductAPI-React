@@ -1,4 +1,3 @@
-// src/components/Register.jsx
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -17,7 +16,7 @@ const Register = () => {
     e.preventDefault();
     try {
       await register(formData.username, formData.password);
-      navigate('/login'); // Redirect to login page upon successful registration
+      navigate('/login'); 
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     }

@@ -16,17 +16,16 @@ export const login = async (username, password) => {
     setAuthToken(response.data.token);
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    throw error.response?.data || { message: 'An error occurred' };
   }
 };
 
 export const register = async (username, password) => {
   try {
-    console.log(username, password)
-    const response = await axios.post('/auth/register/', { username, password });
+    const response = await axios.post('/auth/register', { username, password });
     return response.data;
   } catch (error) {
-    throw error.response?.data || {message: 'An error occurred'};
+    throw error.response?.data || { message: 'An error occurred' };
   }
 };
 
